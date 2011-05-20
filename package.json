@@ -1,0 +1,17 @@
+{
+  "author": "Jeremy Childs <jeremyc@ssimicro.com>",
+  "name": "node-radius",
+  "description": "FreeRADIUS Binding for node.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/jeremycx/node-radius",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jeremycx/node-radius.git"
+  },
+  "main": "./RADIUS.js",
+  "engines": {
+    "node": ">= 0.4.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
