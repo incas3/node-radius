@@ -13,8 +13,8 @@ def configure(conf):
   conf.check_tool('compiler_cxx')
   conf.check_tool('node_addon')
 
-  conf.env.append_unique('CPPFLAGS', ["-I/usr/local/include -g"])
-  conf.env.append_unique('CXXFLAGS', ["-Wall -g"])
+  conf.env.append_unique('CPPFLAGS', ["-I/usr/local/include"])
+  conf.env.append_unique('CXXFLAGS', ["-Wall"])
 
   conf.env.append_unique('LINKFLAGS', ["-L/usr/local/lib"])
 
