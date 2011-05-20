@@ -50,6 +50,5 @@ The tests directory can be skimmed for more usage examples.
 
 TODO:
 -----
-* access to attributes in the Auth repy (coming REAL soon)
-* better testing
+* better testing - lots of testing
 * Dictionary handling/lookups
