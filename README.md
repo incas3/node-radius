@@ -7,6 +7,8 @@ Current Notes
 -------------
 You must first install the freeradiusclient libraries, and configure via radiusclient.conf.
 
+Dictionary based handling of attributes is not supported (coming soon).
+
 Contributing
 ------------
 Pull requests are welcome. Find bugs!
@@ -45,3 +47,9 @@ Accounting Example
 
 
 The tests directory can be skimmed for more usage examples.
+
+TODO:
+-----
+* access to attributes in the Auth repy (coming REAL soon)
+* better testing
+* Dictionary handling/lookups
