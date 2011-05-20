@@ -1,6 +1,6 @@
 {
   "author": "Jeremy Childs <jeremyc@ssimicro.com>",
-  "name": "node-radius",
+  "name": "RADIUS",
   "description": "FreeRADIUS Binding for node.js",
   "version": "0.0.1",
   "homepage": "https://github.com/jeremycx/node-radius",
