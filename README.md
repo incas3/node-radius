@@ -25,7 +25,7 @@ To build, ensure the client libraries are installed, and
 
 Auth Example
 ------------
-        var RADIUS = require("../radius-ng");
+        var RADIUS = require("../RADIUS");
         var r = new RADIUS.Connection("/usr/local/etc/radiusclient-ng/radiusclient.conf");
         
         r.Auth({1: "user1", 2: "seCretPassword", 6:8 }, function(res)
@@ -35,7 +35,7 @@ Auth Example
 
 Accounting Example
 --------------------
-        var RADIUS = require("../radius-ng");
+        var RADIUS = require("../RADIUS");
         var r = new RADIUS.Connection("/usr/local/etc/radiusclient-ng/radiusclient.conf");
         
         r.Acct({1: "user1"}, function(res)
