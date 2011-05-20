@@ -157,19 +157,41 @@ public:
     struct RadiusRequest * rad_req = (Radius::RadiusRequest*)req->data;
     Radius * r = rad_req->r;
     Local<Value> argv[1];
+    Local<Array>  js_result_list;
+    Local<Object> js_result;
+    VALUE_PAIR *vp = NULL;
+    char kbuf[1024], vbuf[1024];
+    int count = 0;
 
     TryCatch try_catch;
 
     argv[0] = Integer::New(rad_req->result);
-    rad_req->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+
+    if (r->received) {
+      vp = r->received;
+      while(vp) {
+        count++;
+        vp = vp->next;
+      }
+
+      js_result_list = Array::New(count);
+
+      vp = r->received;
+      while(vp) {
+        rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024); 
+        js_result_list->Set(String::New(kbuf), String::New(vbuf));
+        vp = vp->next;
+      }      
+      argv[1] = js_result_list;
+      rad_req->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+
+    } else {
+      rad_req->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
 
     if (try_catch.HasCaught()) {
       FatalException(try_catch);
     }
-
-    //    if (r->received) {
-      //      printf("%s", rc_avpair_log(r->rh, r->received));
-    // }
 
     if (r->send != NULL) {
       rc_avpair_free(r->send);
@@ -196,8 +218,11 @@ public:
     Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
     struct RadiusRequest * rad_req;
 
+    REQ_FUN_ARG(0, cb);
+    
     rad_req = (Radius::RadiusRequest*)malloc(sizeof(struct RadiusRequest));
     rad_req->r = r;
+    rad_req->callback = Persistent<Function>::New(cb);
 
     r->busy = 1;
     eio_custom(EIO_Acct, EIO_PRI_DEFAULT, EIO_AfterAcct, rad_req);
@@ -230,6 +255,7 @@ public:
 
     if (r->send != NULL) {
       rc_avpair_free(r->send);
+      r->send = NULL;
     }
     free(rad_req);
 
