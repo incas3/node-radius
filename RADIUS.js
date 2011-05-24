@@ -1,10 +1,23 @@
 var RADBinding = require("./build/default/radius-ng");
+var fs = require('fs');
+
+var Session = function() {
+    var self = this;
+    var session = new Date().getTime();
+    var pid = process.pid;
+    var counter = 0;
+
+    self.GetID = function() {
+        return "" + session + pid + counter++;
+    }
+}
 
 var RADConnection = function(cfg) {
     var self = this;
     var bindings = [];
     var configfile = cfg;
-    
+    var session = new Session();
+
     self.maxbindings = 100;
     self.reapinterval = 60000;
 
@@ -20,12 +33,18 @@ var RADConnection = function(cfg) {
         return binding;
     }
 
+    self.GetID = function() {
+        return session.GetID();
+    }
+
     self.Send = function(attrs, isAuth, CB) {
         var binding = self.GetFreeBinding();
         var attrindex;
 
         for (attr in attrs) {
-            binding.AvpairAdd(attr, attrs[attr]);
+            if (attr.indexOf("_") != 0) {
+                binding.AvpairAdd(attr, attrs[attr]);
+            }
         }
 
         if (isAuth) {
@@ -39,7 +58,16 @@ var RADConnection = function(cfg) {
         self.Send(attrs, 1, CB);
     }
 
+    self.CheckSessionID(attrs) {
+        if ((!attrs['Acct-Session-Id']) &&
+            (!attrs['Acct-Session-ID']) &&
+            (!attrs['acct-session-id']) ) {
+            throw new Error("No Session ID provided");
+        }
+    }
+
     self.Acct = function(attrs, CB) {
+        self.CheckSessionID(attrs);
         self.Send(attrs, 0, CB);
     }
 
@@ -59,4 +87,82 @@ var RADConnection = function(cfg) {
 
 }
 
+/* 
+ * The Accounting Queue is a safe way to transmit
+ * accounting records to the server.
+ * once an accounting record is added to the queue, then
+ * the queue will retry the send until successful.
+ * 
+ * The queue itself is saved to disk periodically
+ *
+ */
+
+var AccountingQueue = function(backingfile, conn) {
+    var self = this;
+    var bf = backingfile;
+    var queue = [];
+    var session = new Session();
+    var connection = conn;
+    var current;
+
+    var RunInterval = 10000;
+    var SaveInterval = 5000;
+    
+    // TODO: Read in the backing file, if present
+
+    setInterval(function() {
+        var b = new Buffer(JSON.stringify(queue), encoding='utf8');
+        
+        fs.open(backingfile, "w+", 0600, function(err, fd) {
+            if (!err) {
+                fs.write(fd, b, 0, b.length, 0, function() {
+                    fs.close(fd);
+                });
+            }
+        });
+    }, SaveInterval);
+
+    self.QueueRun = function() {
+        if (current = queue.shift()) {
+            try {
+                current['Acct-Delay-Time'] = Math.round((new Date().getTime() - current._submittime) / 1000);
+                connection.Acct(current, function(err, data) {
+                    if (err) {
+                        queue.unshift(current);
+                    } else {
+                        self.QueueRun();
+                    }
+                });
+            } catch (err) {
+                // this catch is for connection.Acct. If an error is thrown,
+                // do nothing, as this is caused by a bad request, not a network
+                // problem. Especially don't unshift back to the queue. 
+            }
+        } else {
+            // nothing left.
+            setTimeout(QueueRun, RunInterval);
+        }
+    }
+
+    self.Run = function() {
+        // start up the queue
+        self.QueueRun();
+    }
+
+    self.SetRunInterval = function(i) {
+        RunInterval = i;
+    }
+
+    self.Add = function(rec) {
+        rec._submittime = new Date().getTime();
+        // we require an Session-ID since it's our only way of catching
+        // slow ACKs.
+        connection.CheckSessionID(rec);
+        queue.push(rec);
+    }
+
+}
+
 exports.Connection = RADConnection;
+exports.AccountingQueue = AccountingQueue;
+exports.Session = Session;
