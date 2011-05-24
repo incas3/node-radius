@@ -7,8 +7,6 @@ Current Notes
 -------------
 You must first install the freeradiusclient libraries, and configure via radiusclient.conf.
 
-Dictionary based handling of attributes is not supported (coming soon).
-
 Contributing
 ------------
 Pull requests are welcome. Find bugs!
@@ -28,27 +26,30 @@ To build, ensure the client libraries are installed, and
 Auth Example
 ------------
         var RADIUS = require("../RADIUS");
-        var r = new RADIUS.Connection("/usr/local/etc/radiusclient-ng/radiusclient.conf");
+        var r = new RADIUS.Connection("/etc/radiusclient.conf");
         
-        r.Auth({"user-name": "user1", "password": "seCretPassword", "service-type":8 }, function(res)
-        {
+        r.Auth({"user-name": "user1", 
+                "password": "seCretPassword",
+                "service-type": "framed-user"}, 
+
+                function(res, data) {
                 console.log("Result: "+res);
         });
 
 Accounting Example
 --------------------
         var RADIUS = require("../RADIUS");
-        var r = new RADIUS.Connection("/usr/local/etc/radiusclient-ng/radiusclient.conf");
+        var r = new RADIUS.Connection("/etc/radiusclient.conf");
         
-        r.Acct({1: "user1"}, function(res)
-        {
+        r.Acct({"user-name":          "user1",
+                "acct-input-octets":  78264,
+                "acct-output-octets": 77363},
+                function(res) {
                 console.log("Result: "+res);
         });
 
 
-The tests directory can be skimmed for more usage examples.
-
 TODO:
 -----
 * Vendor-specific attributes
-* better testing - lots of testing
+
