@@ -58,7 +58,7 @@ var RADConnection = function(cfg) {
         self.Send(attrs, 1, CB);
     }
 
-    self.CheckSessionID(attrs) {
+    self.CheckSessionID = function(attrs) {
         if ((!attrs['Acct-Session-Id']) &&
             (!attrs['Acct-Session-ID']) &&
             (!attrs['acct-session-id']) ) {
@@ -106,11 +106,20 @@ var AccountingQueue = function(backingfile, conn) {
     var current;
 
     var RunInterval = 10000;
-    var SaveInterval = 5000;
+    var SaveInterval = 60000;
     
-    // TODO: Read in the backing file, if present
+    try {
+        var dummy = fs.readFileSync(backingfile, "utf8");
+        if (dummy) {
+            queue = JSON.parse(dummy);
+        }
+    } catch (e) {
+        // it's OK if we can't read the file.
+    }
 
-    setInterval(function() {
+    self.WriteQueue = function() {
+        console.log("Writing Queue");
+
         var b = new Buffer(JSON.stringify(queue), encoding='utf8');
         
         fs.open(backingfile, "w+", 0600, function(err, fd) {
@@ -120,7 +129,7 @@ var AccountingQueue = function(backingfile, conn) {
                 });
             }
         });
-    }, SaveInterval);
+    }
 
     self.QueueRun = function() {
         if (current = queue.shift()) {
@@ -155,12 +164,22 @@ var AccountingQueue = function(backingfile, conn) {
 
     self.Add = function(rec) {
         rec._submittime = new Date().getTime();
-        // we require an Session-ID since it's our only way of catching
+        // we require a Session-ID since it's our only way of catching
         // slow ACKs.
         connection.CheckSessionID(rec);
         queue.push(rec);
     }
 
+    self.Exit = function() {
+        self.WriteQueue();
+        process.exit(0);
+    }
+
+    setInterval(self.WriteQueue, SaveInterval);
+    process.on("SIGINT", self.Exit);
+    process.on("SIGTERM", self.Exit);
+    process.on("SIGQUIT", self.Exit);
+    process.on("SIGABRT", self.Exit);
 }
 
 exports.Connection = RADConnection;
