@@ -63,8 +63,6 @@ public:
     s_ct->SetClassName(String::NewSymbol("Radius"));
 
     NODE_SET_PROTOTYPE_METHOD(s_ct, "InitRadius", InitRadius);
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "AvpairAddStr", AvpairAddStr);
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "AvpairAddInt", AvpairAddInt);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "AvpairAdd", AvpairAdd);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "Auth", Auth);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "Acct", Acct);
@@ -99,10 +97,12 @@ public:
     if ((r->rh = rc_read_config((char *)*cfg))) {
       if (rc_read_dictionary(r->rh, rc_conf_str(r->rh, (char *)"dictionary")) == 0) {
         return scope.Close(Integer::New(0));
+      } else {
+        THROW("Unable to parse dictionary");
       }
-    }
+    } 
 
-    return scope.Close(Integer::New(1));
+    THROW("Unable to locate config file");
   }
 
   static Handle<Value> Busy(const Arguments& args)
@@ -111,45 +111,6 @@ public:
     GETOBJ(r);
 
     return scope.Close(Integer::New(r->busy));
-  }
-
-
-  static Handle<Value> AvpairAddStr(const Arguments& args)
-  {
-    HandleScope scope;
-    GETOBJ(r);
-
-    ENFORCE_ARG_LENGTH(2, "Must provide a type and value");
-    ENFORCE_ARG_NUMBER(0);
-    ENFORCE_ARG_STR(1);
-
-    uint32_t type = args[0]->Uint32Value();
-    String::Utf8Value str(args[1]);
-
-    if (rc_avpair_add(r->rh, &(r->send), type, *str, -1, 0)) {
-      return scope.Close(Integer::New(0));
-    }
-
-    return scope.Close(Integer::New(1));
-  }
-
-  static Handle<Value> AvpairAddInt(const Arguments& args)
-  {
-    HandleScope scope;
-    GETOBJ(r);
-
-    ENFORCE_ARG_LENGTH(2, "Must provide a type and value");
-    ENFORCE_ARG_NUMBER(0);
-    ENFORCE_ARG_NUMBER(1);
-
-    uint32_t type = args[0]->Uint32Value();
-    uint32_t val(args[1]->Uint32Value());
-
-    if (rc_avpair_add(r->rh, &(r->send), type, &val, -1, 0)) {
-      return scope.Close(Integer::New(0));
-    }
-
-    return scope.Close(Integer::New(1));
   }
 
   static Handle<Value> AvpairAdd(const Arguments& args)
