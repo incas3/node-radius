@@ -24,7 +24,6 @@ var RADConnection = function(cfg) {
         var binding = self.GetFreeBinding();
         var attrindex;
 
-        // add the attrs
         for (attr in attrs) {
             binding.AvpairAdd(attr, attrs[attr]);
         }
