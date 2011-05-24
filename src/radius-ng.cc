@@ -20,7 +20,7 @@ using namespace v8;
 #define THROW(msg) \
         return ThrowException(Exception::Error(String::New(msg)));
 
-#define GETHANDLE(r) \
+#define GETOBJ(r) \
       Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
 
 
@@ -74,7 +74,7 @@ public:
   static Handle<Value> InitRadius(const Arguments& args)
   {
     HandleScope scope;
-    GETHANDLE(r);
+    GETOBJ(r);
 
     String::Utf8Value cfg(args[0]);
     
@@ -94,7 +94,7 @@ public:
   static Handle<Value> Busy(const Arguments& args)
   {
     HandleScope scope;
-    GETHANDLE(r);
+    GETOBJ(r);
 
     return scope.Close(Integer::New(r->busy));
   }
@@ -103,7 +103,7 @@ public:
   static Handle<Value> AvpairAddStr(const Arguments& args)
   {
     HandleScope scope;
-    GETHANDLE(r);
+    GETOBJ(r);
 
     uint32_t type = args[0]->Uint32Value();
     String::Utf8Value str(args[1]);
@@ -118,7 +118,7 @@ public:
   static Handle<Value> AvpairAddInt(const Arguments& args)
   {
     HandleScope scope;
-    GETHANDLE(r);
+    GETOBJ(r);
 
     uint32_t type = args[0]->Uint32Value();
     uint32_t val(args[1]->Uint32Value());
@@ -133,7 +133,7 @@ public:
   static Handle<Value> AvpairAdd(const Arguments& args)
   {
     HandleScope scope;
-    GETHANDLE(r);
+    GETOBJ(r);
     DICT_ATTR * da;
     int res;
     
@@ -172,7 +172,7 @@ public:
   static Handle<Value> Auth(const Arguments& args)
   {
     HandleScope scope;
-    GETHANDLE(r);
+    GETOBJ(r);
     struct RadiusRequest * rad_req;
 
     REQ_FUN_ARG(0, cb);
@@ -258,7 +258,7 @@ public:
   static Handle<Value> Acct(const Arguments& args)
   {
     HandleScope scope;
-    GETHANDLE(r);
+    GETOBJ(r);
     struct RadiusRequest * rad_req;
 
     REQ_FUN_ARG(0, cb);
