@@ -42,6 +42,7 @@ Accounting Example
         var r = new RADIUS.Connection("/etc/radiusclient.conf");
         
         r.Acct({"user-name":          "user1",
+                "session-id":         r.GetID(),
                 "acct-input-octets":  78264,
                 "acct-output-octets": 77363},
                 function(res) {
