@@ -50,6 +50,7 @@ The tests directory can be skimmed for more usage examples.
 
 TODO:
 -----
+* Vendor-specific attributes
 * better testing - lots of testing
 * Dictionary handling/lookups
 * IP Address handling
