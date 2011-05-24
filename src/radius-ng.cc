@@ -17,6 +17,13 @@ using namespace v8;
                   String::New("Argument " #I " must be a function")));  \
   Local<Function> VAR = Local<Function>::Cast(args[I]);
 
+#define THROW(msg) \
+        return ThrowException(Exception::Error(String::New(msg)));
+
+#define GETHANDLE(r) \
+      Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
+
+
 
 class Radius: ObjectWrap
 {
@@ -47,6 +54,7 @@ public:
     NODE_SET_PROTOTYPE_METHOD(s_ct, "InitRadius", InitRadius);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "AvpairAddStr", AvpairAddStr);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "AvpairAddInt", AvpairAddInt);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "AvpairAdd", AvpairAdd);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "Auth", Auth);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "Acct", Acct);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "Busy", Busy);
@@ -66,7 +74,7 @@ public:
   static Handle<Value> InitRadius(const Arguments& args)
   {
     HandleScope scope;
-    Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
+    GETHANDLE(r);
 
     String::Utf8Value cfg(args[0]);
     
@@ -86,7 +94,7 @@ public:
   static Handle<Value> Busy(const Arguments& args)
   {
     HandleScope scope;
-    Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
+    GETHANDLE(r);
 
     return scope.Close(Integer::New(r->busy));
   }
@@ -95,7 +103,7 @@ public:
   static Handle<Value> AvpairAddStr(const Arguments& args)
   {
     HandleScope scope;
-    Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
+    GETHANDLE(r);
 
     uint32_t type = args[0]->Uint32Value();
     String::Utf8Value str(args[1]);
@@ -110,7 +118,7 @@ public:
   static Handle<Value> AvpairAddInt(const Arguments& args)
   {
     HandleScope scope;
-    Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
+    GETHANDLE(r);
 
     uint32_t type = args[0]->Uint32Value();
     uint32_t val(args[1]->Uint32Value());
@@ -122,6 +130,41 @@ public:
     return scope.Close(Integer::New(1));
   }
 
+  static Handle<Value> AvpairAdd(const Arguments& args)
+  {
+    HandleScope scope;
+    GETHANDLE(r);
+    DICT_ATTR * da;
+    int res;
+    
+
+    String::Utf8Value attr(args[0]);
+
+    da = rc_dict_findattr(r->rh, *attr);
+
+    if (da) {
+      switch (da->type) {
+      case PW_TYPE_STRING:
+        {
+          String::Utf8Value str(args[1]);
+          res = (rc_avpair_add(r->rh, &(r->send), da->value, *str, -1, 0) == NULL ? 1 : 0);
+          break;
+        }
+      case PW_TYPE_INTEGER:
+        {
+          uint32_t val(args[1]->Uint32Value());
+          res = (rc_avpair_add(r->rh, &(r->send), da->value, &val, -1, 0) == NULL ? 1 : 0);
+          break;
+        }
+      default:
+        THROW("Unknown Type. Check Dictionary");
+      }
+      return scope.Close(Integer::New(res));
+    } 
+
+    THROW("Unknown Attribute Name");
+  }
+
   /*
    * Auth Routines
    *
@@ -129,7 +172,7 @@ public:
   static Handle<Value> Auth(const Arguments& args)
   {
     HandleScope scope;
-    Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
+    GETHANDLE(r);
     struct RadiusRequest * rad_req;
 
     REQ_FUN_ARG(0, cb);
@@ -215,7 +258,7 @@ public:
   static Handle<Value> Acct(const Arguments& args)
   {
     HandleScope scope;
-    Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
+    GETHANDLE(r);
     struct RadiusRequest * rad_req;
 
     REQ_FUN_ARG(0, cb);
