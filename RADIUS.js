@@ -22,18 +22,12 @@ var RADConnection = function(cfg) {
 
     self.Send = function(attrs, isAuth, CB) {
         var binding = self.GetFreeBinding();
+        var attrindex;
 
         // add the attrs
         for (attr in attrs) {
-            if (typeof(attrs[attr]) == 'string') {
-                binding.AvpairAddStr(attr, attrs[attr]);
-            } else if (typeof(attrs[attr]) == 'number') {
-                binding.AvpairAddInt(attr, attrs[attr]);
-            } else {
-                throw new Error("Unknown data type: "+typeof(attrs[attr]));
-            }
+            binding.AvpairAdd(attr, attrs[attr]);
         }
-
 
         if (isAuth) {
             binding.Auth(CB);
