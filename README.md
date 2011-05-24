@@ -53,4 +53,5 @@ Accounting Example
 TODO:
 -----
 * Vendor-specific attributes
-
+* AccountingQueue is not complete
+* Test harness for radiusd required for proper testing
