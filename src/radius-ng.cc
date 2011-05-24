@@ -18,11 +18,22 @@ using namespace v8;
   Local<Function> VAR = Local<Function>::Cast(args[I]);
 
 #define THROW(msg) \
-        return ThrowException(Exception::Error(String::New(msg)));
+  return ThrowException(Exception::Error(String::New(msg)));
 
 #define GETOBJ(r) \
-      Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
+  Radius * r = ObjectWrap::Unwrap<Radius>(args.This());
 
+#define ENFORCE_ARG_LENGTH(n, m)                   \
+  if (args.Length() < n) THROW(m);
+  
+#define ENFORCE_ARG_STR(n)                      \
+  if (!args[n]->IsString()) THROW("Argument must be string");
+
+#define ENFORCE_ARG_NUMBER(n)                      \
+  if (!args[n]->IsNumber()) THROW("Argument must be numeric");
+
+#define ENFORCE_ARG_FUNC(n)                      \
+  if (!args[n]->IsFunction()) THROW("Argument must be numeric");
 
 
 class Radius: ObjectWrap
@@ -76,6 +87,9 @@ public:
     HandleScope scope;
     GETOBJ(r);
 
+    ENFORCE_ARG_LENGTH(1, "Must provide a config filename");
+    ENFORCE_ARG_STR(0);
+
     String::Utf8Value cfg(args[0]);
     
     r->send = NULL;
@@ -105,6 +119,10 @@ public:
     HandleScope scope;
     GETOBJ(r);
 
+    ENFORCE_ARG_LENGTH(2, "Must provide a type and value");
+    ENFORCE_ARG_NUMBER(0);
+    ENFORCE_ARG_STR(1);
+
     uint32_t type = args[0]->Uint32Value();
     String::Utf8Value str(args[1]);
 
@@ -119,6 +137,10 @@ public:
   {
     HandleScope scope;
     GETOBJ(r);
+
+    ENFORCE_ARG_LENGTH(2, "Must provide a type and value");
+    ENFORCE_ARG_NUMBER(0);
+    ENFORCE_ARG_NUMBER(1);
 
     uint32_t type = args[0]->Uint32Value();
     uint32_t val(args[1]->Uint32Value());
@@ -136,7 +158,8 @@ public:
     GETOBJ(r);
     DICT_ATTR * da;
     int res;
-    
+
+    ENFORCE_ARG_LENGTH(2, "Must provide a type and value");
 
     String::Utf8Value attr(args[0]);
 
@@ -152,14 +175,35 @@ public:
         }
       case PW_TYPE_INTEGER:
         {
-          uint32_t val(args[1]->Uint32Value());
+          if (args[1]->IsString()) {
+            // look for the value in the dictionary
+            DICT_VALUE * dv;
+            String::Utf8Value str_rep(args[1]);
+            dv = rc_dict_findval(r->rh, *str_rep);
+            if (dv == NULL) {
+              THROW("Unknown value. Check dictionary");
+            }
+            res = (rc_avpair_add(r->rh, &(r->send), da->value, &(dv->value), -1, 0) == NULL ? 1 : 0);            
+          } else {
+            uint32_t val(args[1]->Uint32Value());            
+            res = (rc_avpair_add(r->rh, &(r->send), da->value, &val, -1, 0) == NULL ? 1 : 0);
+          }
+          break;
+        }
+      case PW_TYPE_IPADDR:
+        {
+          String::Utf8Value str(args[1]);
+          uint32_t val = rc_get_ipaddr(*str);
           res = (rc_avpair_add(r->rh, &(r->send), da->value, &val, -1, 0) == NULL ? 1 : 0);
           break;
         }
       default:
         THROW("Unknown Type. Check Dictionary");
       }
-      return scope.Close(Integer::New(res));
+      if (res) {
+        THROW("Unable to add attribute");
+      } 
+      return scope.Close(Integer::New(0));
     } 
 
     THROW("Unknown Attribute Name");
@@ -174,6 +218,9 @@ public:
     HandleScope scope;
     GETOBJ(r);
     struct RadiusRequest * rad_req;
+
+    ENFORCE_ARG_LENGTH(1, "Must provide a callback");
+    ENFORCE_ARG_FUNC(0);
 
     REQ_FUN_ARG(0, cb);
     
@@ -221,8 +268,19 @@ public:
 
       vp = r->received;
       while(vp) {
-        rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024); 
-        js_result_list->Set(String::New(kbuf), String::New(vbuf));
+        switch(vp->type) {
+        case PW_TYPE_STRING:
+        case PW_TYPE_IPADDR:
+          rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024); 
+          js_result_list->Set(String::New(kbuf), String::New(vbuf));
+          break;
+        case PW_TYPE_INTEGER:
+          rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024); 
+          js_result_list->Set(String::New(kbuf), Integer::New(vp->lvalue));
+          break;
+        default:
+          break;
+        }
         vp = vp->next;
       }      
       argv[1] = js_result_list;
@@ -260,6 +318,9 @@ public:
     HandleScope scope;
     GETOBJ(r);
     struct RadiusRequest * rad_req;
+
+    ENFORCE_ARG_LENGTH(1, "Must provide a callback");
+    ENFORCE_ARG_FUNC(0);
 
     REQ_FUN_ARG(0, cb);
     
