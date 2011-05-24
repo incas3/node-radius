@@ -30,7 +30,7 @@ Auth Example
         var RADIUS = require("../RADIUS");
         var r = new RADIUS.Connection("/usr/local/etc/radiusclient-ng/radiusclient.conf");
         
-        r.Auth({1: "user1", 2: "seCretPassword", 6:8 }, function(res)
+        r.Auth({"user-name": "user1", "password": "seCretPassword", "service-type":8 }, function(res)
         {
                 console.log("Result: "+res);
         });
@@ -52,6 +52,3 @@ TODO:
 -----
 * Vendor-specific attributes
 * better testing - lots of testing
-* Dictionary handling/lookups
-* IP Address handling
-* Validate arg inputs
