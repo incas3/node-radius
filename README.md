@@ -52,3 +52,5 @@ TODO:
 -----
 * better testing - lots of testing
 * Dictionary handling/lookups
+* IP Address handling
+* Validate arg inputs
