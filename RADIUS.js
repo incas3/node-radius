@@ -109,6 +109,8 @@ var AccountingQueue = function(backingfile, conn) {
     var SaveInterval = 60000;
     
     try {
+        // OK to be sync, only happens at startup, and we want to know
+        // this is loaded before proceeding.
         var dummy = fs.readFileSync(backingfile, "utf8");
         if (dummy) {
             queue = JSON.parse(dummy);
@@ -149,7 +151,7 @@ var AccountingQueue = function(backingfile, conn) {
             }
         } else {
             // nothing left.
-            setTimeout(QueueRun, RunInterval);
+            setTimeout(self.QueueRun, RunInterval);
         }
     }
 
