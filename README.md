@@ -28,7 +28,7 @@ Auth Example
         var RADIUS = require("../RADIUS");
         var r = new RADIUS.Connection("/etc/radiusclient.conf");
         
-        r.Auth({"user-name": "user1", 
+        r.auth({"user-name": "user1", 
                 "password": "seCretPassword",
                 "service-type": "framed-user"}, 
 
@@ -41,8 +41,8 @@ Accounting Example
         var RADIUS = require("../RADIUS");
         var r = new RADIUS.Connection("/etc/radiusclient.conf");
         
-        r.Acct({"user-name":          "user1",
-                "session-id":         r.GetID(),
+        r.acct({"user-name":          "user1",
+                "session-id":         r.genID(),
                 "acct-input-octets":  78264,
                 "acct-output-octets": 77363},
                 function(res) {

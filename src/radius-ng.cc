@@ -33,7 +33,7 @@ using namespace v8;
   if (!args[n]->IsNumber()) THROW("Argument must be numeric");
 
 #define ENFORCE_ARG_FUNC(n)                      \
-  if (!args[n]->IsFunction()) THROW("Argument must be numeric");
+  if (!args[n]->IsFunction()) THROW("Argument must be a function");
 
 
 class Radius: ObjectWrap
@@ -62,11 +62,11 @@ public:
     s_ct->InstanceTemplate()->SetInternalFieldCount(1);
     s_ct->SetClassName(String::NewSymbol("Radius"));
 
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "InitRadius", InitRadius);
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "AvpairAdd", AvpairAdd);
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "Auth", Auth);
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "Acct", Acct);
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "Busy", Busy);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "initRadius", InitRadius);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "avpairAdd", AvpairAdd);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "auth", Auth);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "acct", Acct);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "busy", Busy);
 
     target->Set(String::NewSymbol("Radius"), s_ct->GetFunction());
   }
@@ -328,7 +328,6 @@ public:
 
     return 0;
   }
-
 };
 
 Persistent<FunctionTemplate> Radius::s_ct;

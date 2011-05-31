@@ -7,7 +7,7 @@ var Session = function() {
     var pid = process.pid;
     var counter = 0;
 
-    self.GetID = function() {
+    self.genID = function() {
         return "" + session + pid + counter++;
     }
 }
@@ -21,44 +21,44 @@ var RADConnection = function(cfg) {
     self.maxbindings = 100;
     self.reapinterval = 60000;
 
-    self.GetFreeBinding = function() {
+    self.getFreeBinding = function() {
         for (var i = 0 ; i < bindings.length ; i++) {
-            if (!bindings[i].Busy()) {
+            if (!bindings[i].busy()) {
                 return bindings[i];
             }
         }
         var binding = new RADBinding.Radius();
-        binding.InitRadius(configfile);
+        binding.initRadius(configfile);
         bindings.push(binding);
         return binding;
     }
 
-    self.GetID = function() {
-        return session.GetID();
+    self.genID = function() {
+        return session.genID();
     }
 
-    self.Send = function(attrs, isAuth, CB) {
-        var binding = self.GetFreeBinding();
+    self.send = function(attrs, isAuth, CB) {
+        var binding = self.getFreeBinding();
         var attrindex;
 
         for (attr in attrs) {
             if (attr.indexOf("_") != 0) {
-                binding.AvpairAdd(attr, attrs[attr]);
+                binding.avpairAdd(attr, attrs[attr]);
             }
         }
 
         if (isAuth) {
-            binding.Auth(CB);
+            binding.auth(CB);
         } else {
-            binding.Acct(CB);
+            binding.acct(CB);
         }
     }
 
-    self.Auth = function(attrs, CB) {
-        self.Send(attrs, 1, CB);
+    self.auth = function(attrs, CB) {
+        self.send(attrs, 1, CB);
     }
 
-    self.CheckSessionID = function(attrs) {
+    self.checkSessionID = function(attrs) {
         if ((!attrs['Acct-Session-Id']) &&
             (!attrs['Acct-Session-ID']) &&
             (!attrs['acct-session-id']) ) {
@@ -66,24 +66,24 @@ var RADConnection = function(cfg) {
         }
     }
 
-    self.Acct = function(attrs, CB) {
-        self.CheckSessionID(attrs);
-        self.Send(attrs, 0, CB);
+    self.acct = function(attrs, CB) {
+        self.checkSessionID(attrs);
+        self.send(attrs, 0, CB);
     }
 
-    self.Reaper = function() {
+    self.reaper = function() {
         if (bindings.length < self.maxbindings) {
             return;
         }
         for (var i = 0 ; i < bindings.length ; i++) {
-            if (!bindings[i].Busy()) {
+            if (!bindings[i].busy()) {
                 bindings.splice(i, 1);
                 i--;
             }
         }
     }
 
-    setInterval(self.Reaper, self.reapinterval);
+    setInterval(self.reaper, self.reapinterval);
 
 }
 
@@ -105,8 +105,8 @@ var AccountingQueue = function(backingfile, conn) {
     var connection = conn;
     var current;
 
-    var RunInterval = 10000;
-    var SaveInterval = 60000;
+    var runInterval = 10000;
+    var saveInterval = 60000;
     
     try {
         // OK to be sync, only happens at startup, and we want to know
@@ -119,29 +119,30 @@ var AccountingQueue = function(backingfile, conn) {
         // it's OK if we can't read the file.
     }
 
-    self.WriteQueue = function() {
-        console.log("Writing Queue");
-
+    self.writeQueue = function(exit) {
         var b = new Buffer(JSON.stringify(queue), encoding='utf8');
         
         fs.open(backingfile, "w+", 0600, function(err, fd) {
             if (!err) {
                 fs.write(fd, b, 0, b.length, 0, function() {
                     fs.close(fd);
+                    if (exit) {
+                        process.exit(0);
+                    }
                 });
             }
         });
     }
 
-    self.QueueRun = function() {
+    self.queueRun = function() {
         if (current = queue.shift()) {
             try {
                 current['Acct-Delay-Time'] = Math.round((new Date().getTime() - current._submittime) / 1000);
-                connection.Acct(current, function(err, data) {
+                connection.acct(current, function(err, data) {
                     if (err) {
                         queue.unshift(current);
                     } else {
-                        self.QueueRun();
+                        self.queueRun();
                     }
                 });
             } catch (err) {
@@ -151,33 +152,32 @@ var AccountingQueue = function(backingfile, conn) {
             }
         } else {
             // nothing left.
-            setTimeout(self.QueueRun, RunInterval);
+            setTimeout(self.queueRun, runInterval);
         }
     }
 
-    self.Run = function() {
+    self.run = function() {
         // start up the queue
-        self.QueueRun();
+        self.queueRun();
     }
 
-    self.SetRunInterval = function(i) {
-        RunInterval = i;
+    self.setRunInterval = function(i) {
+        runInterval = i;
     }
 
-    self.Add = function(rec) {
+    self.add = function(rec) {
         rec._submittime = new Date().getTime();
         // we require a Session-ID since it's our only way of catching
         // slow ACKs.
-        connection.CheckSessionID(rec);
+        connection.checkSessionID(rec);
         queue.push(rec);
     }
 
     self.Exit = function() {
-        self.WriteQueue();
-        process.exit(0);
+        self.writeQueue(true);
     }
 
-    setInterval(self.WriteQueue, SaveInterval);
+    setInterval(self.writeQueue, saveInterval);
     process.on("SIGINT", self.Exit);
     process.on("SIGTERM", self.Exit);
     process.on("SIGQUIT", self.Exit);
