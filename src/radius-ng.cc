@@ -246,10 +246,11 @@ public:
       }      
       argv[1] = js_result_list;
       rad_req->callback->Call(Context::GetCurrent()->Global(), 2, argv);
-
     } else {
       rad_req->callback->Call(Context::GetCurrent()->Global(), 1, argv);
     }
+
+    rad_req->callback.Dispose();
 
     if (try_catch.HasCaught()) {
       FatalException(try_catch);
@@ -263,6 +264,7 @@ public:
       rc_avpair_free(r->received);
       r->received = NULL;
     }
+
     free(rad_req);
 
     r->busy = 0;
@@ -313,6 +315,8 @@ public:
 
     argv[0] = Integer::New(rad_req->result);
     rad_req->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+
+    rad_req->callback.Dispose();
 
     if (try_catch.HasCaught()) {
       FatalException(try_catch);
