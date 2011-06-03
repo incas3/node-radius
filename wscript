@@ -23,7 +23,7 @@ def build(bld):
   obj = bld.new_task_gen('cxx', 'shlib', 'node_addon')
   obj.target = 'radius-ng'
   obj.source = './src/radius-ng.cc'
-  obj.lib = ['radiusclient-ng']
+  obj.lib = ['freeradius-client']
 
 #def shutdown():
   # HACK to get bindings.node out of build directory.

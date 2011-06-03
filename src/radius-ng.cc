@@ -6,7 +6,7 @@
 #include <errno.h>
 
 #include <config.h>
-#include <radiusclient-ng.h>
+#include <freeradius-client.h>
 
 using namespace node;
 using namespace v8;
