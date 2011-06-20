@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <config.h>
 #include <freeradius-client.h>
 
 using namespace node;
@@ -64,6 +63,8 @@ public:
 
     NODE_SET_PROTOTYPE_METHOD(s_ct, "initRadius", InitRadius);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "avpairAdd", AvpairAdd);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "configAdd", ConfigAdd);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "readDictionary", ReadDictionary);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "auth", Auth);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "acct", Acct);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "busy", Busy);
@@ -84,25 +85,14 @@ public:
   {
     HandleScope scope;
     GETOBJ(r);
-
-    ENFORCE_ARG_LENGTH(1, "Must provide a config filename");
-    ENFORCE_ARG_STR(0);
-
-    String::Utf8Value cfg(args[0]);
     
     r->send = NULL;
     r->busy = 0;
 
-    // set up underlying library
-    if ((r->rh = rc_read_config((char *)*cfg))) {
-      if (rc_read_dictionary(r->rh, rc_conf_str(r->rh, (char *)"dictionary")) == 0) {
-        return scope.Close(Integer::New(0));
-      } else {
-        THROW("Unable to parse dictionary");
-      }
-    } 
+    r->rh = rc_new();
+    r->rh = rc_config_init(r->rh);
 
-    THROW("Unable to locate config file");
+    return scope.Close(Integer::New(0));
   }
 
   static Handle<Value> Busy(const Arguments& args)
@@ -111,6 +101,39 @@ public:
     GETOBJ(r);
 
     return scope.Close(Integer::New(r->busy));
+  }
+
+  static Handle<Value> ReadDictionary(const Arguments& args)
+  {
+    HandleScope scope;
+    GETOBJ(r);
+
+    if (rc_read_dictionary(r->rh, rc_conf_str(r->rh, (char *)"dictionary")) != 0) {
+      THROW("Could not read dictionary");
+    }
+
+    return scope.Close(Integer::New(0));    
+  }
+
+
+  static Handle<Value> ConfigAdd(const Arguments& args)
+  {
+    HandleScope scope;
+    GETOBJ(r);
+
+    ENFORCE_ARG_LENGTH(2, "Must provide a key and value");
+    ENFORCE_ARG_STR(0);
+    ENFORCE_ARG_STR(1);
+
+    String::Utf8Value key(args[0]);
+    String::Utf8Value val(args[1]);
+
+    if (rc_add_config(r->rh, *key, *val, "config", 0) != 0) {
+      fprintf(stderr, "Opt: %s %s\n", *key, *val);
+      THROW("Bad config option");
+    }
+    
+    return scope.Close(Integer::New(0));    
   }
 
   static Handle<Value> AvpairAdd(const Arguments& args)
