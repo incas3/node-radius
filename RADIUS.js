@@ -106,27 +106,28 @@ var RADConnection = function(cfg) {
 var AccountingQueue = function(backingfile, conn) {
     var self = this;
     var bf = backingfile;
-    var queue = [];
     var session = new Session();
     var connection = conn;
     var current;
 
     var runInterval = 10000;
     var saveInterval = 60000;
+
+    self.queue = [];
     
     try {
         // OK to be sync, only happens at startup, and we want to know
         // this is loaded before proceeding.
         var dummy = fs.readFileSync(backingfile, "utf8");
         if (dummy) {
-            queue = JSON.parse(dummy);
+            self.queue = JSON.parse(dummy);
         }
     } catch (e) {
         // it's OK if we can't read the file.
     }
 
     self.writeQueue = function(exit) {
-        var b = new Buffer(JSON.stringify(queue), encoding='utf8');
+        var b = new Buffer(JSON.stringify(self.queue), encoding='utf8');
         
         fs.open(backingfile, "w+", 0600, function(err, fd) {
             if (!err) {
@@ -141,12 +142,12 @@ var AccountingQueue = function(backingfile, conn) {
     }
 
     self.queueRun = function() {
-        if (current = queue.shift()) {
+        if (current = self.queue.shift()) {
             try {
                 current['Acct-Delay-Time'] = Math.round((new Date().getTime() - current._submittime) / 1000);
                 connection.acct(current, function(err, data) {
                     if (err) {
-                        queue.unshift(current);
+                        self.queue.unshift(current);
                     } else {
                         self.queueRun();
                     }
@@ -176,7 +177,7 @@ var AccountingQueue = function(backingfile, conn) {
         // we require a Session-ID since it's our only way of catching
         // slow ACKs.
         connection.checkSessionID(rec);
-        queue.push(rec);
+        self.queue.push(rec);
     }
 
     self.Exit = function() {
