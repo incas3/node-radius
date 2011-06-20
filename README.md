@@ -26,7 +26,16 @@ To build, ensure the client libraries are installed, and
 Auth Example
 ------------
         var RADIUS = require("../RADIUS");
-        var r = new RADIUS.Connection("/etc/radiusclient.conf");
+        var r = new RADIUS.Connection({
+            auth_order:      "radius",
+            radius_deadtime: "0",
+            radius_retries:  "3",
+            dictionary:      "/usr/local/etc/radiusclient/dictionary",
+            seqfile:         "/var/run/radius.seq",
+            radius_timeout:  "5",
+            authserver:      "server.example.com:1645:foobarbaz",
+            acctserver:      "server.example.com:1646:foobarbaz"
+});
         
         r.auth({"user-name": "user1", 
                 "password": "seCretPassword",
@@ -39,7 +48,16 @@ Auth Example
 Accounting Example
 --------------------
         var RADIUS = require("../RADIUS");
-        var r = new RADIUS.Connection("/etc/radiusclient.conf");
+        var r = new RADIUS.Connection({
+            auth_order:      "radius",
+            radius_deadtime: "0",
+            radius_retries:  "3",
+            dictionary:      "/usr/local/etc/radiusclient/dictionary",
+            seqfile:         "/var/run/radius.seq",
+            radius_timeout:  "5",
+            authserver:      "server.example.com:1645:secret",
+            acctserver:      "server.example.com:1646:secret"
+});
         
         r.acct({"user-name":          "user1",
                 "session-id":         r.genID(),
