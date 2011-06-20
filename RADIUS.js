@@ -157,10 +157,8 @@ var AccountingQueue = function(backingfile, conn) {
                 // do nothing, as this is caused by a bad request, not a network
                 // problem. Especially don't unshift back to the queue. 
             }
-        } else {
-            // nothing left.
-            setTimeout(self.queueRun, runInterval);
         }
+        setTimeout(self.queueRun, runInterval);
     }
 
     self.run = function() {
