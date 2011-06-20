@@ -57,7 +57,7 @@ Accounting Example
             radius_timeout:  "5",
             authserver:      "server.example.com:1645:secret",
             acctserver:      "server.example.com:1646:secret"
-});
+            });
         
         r.acct({"user-name":          "user1",
                 "session-id":         r.genID(),
