@@ -31,13 +31,15 @@ var RADConnection = function(cfg) {
         binding.initRadius();
 
         for (var attr in rconfig) {
-            self.log_debug('Adding ' + attr + ' ' + rconfig[attr]);
+            self.debug_log('Adding ' + attr + ' ' + rconfig[attr]);
             binding.configAdd(attr, rconfig[attr]);
         }
         binding.readDictionary();
-        self.log_debug('Read dictionary');
+        self.debug_log('Read dictionary');
 
         bindings.push(binding);
+        self.log('New binding initialized');
+
         return binding;
     }
 
@@ -49,7 +51,7 @@ var RADConnection = function(cfg) {
         return;
     }
 
-    self.log_debug = function(msg) {
+    self.debug_log = function(msg) {
         return;
     }
 
@@ -59,7 +61,7 @@ var RADConnection = function(cfg) {
         }
 
         if (type == 'debug') {
-            self.log_debug = logfunc;
+            self.debug_log = logfunc;
         } else {
             self.log = logfunc;
         }
@@ -71,7 +73,7 @@ var RADConnection = function(cfg) {
 
         for (attr in attrs) {
             if (attr.indexOf('_') != 0) {
-                self.log_debug('Adding ' + attr + ':' + attrs[attr] + ' to packet');
+                self.debug_log('Adding ' + attr + ':' + attrs[attr] + ' to packet');
                 binding.avpairAdd(attr, attrs[attr]);
             }
         }
