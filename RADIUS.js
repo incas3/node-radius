@@ -15,7 +15,7 @@ var Session = function() {
 var RADConnection = function(cfg) {
     var self = this;
     var bindings = [];
-    var configfile = cfg;
+    var rconfig = cfg;
     var session = new Session();
 
     self.maxbindings = 100;
@@ -28,7 +28,13 @@ var RADConnection = function(cfg) {
             }
         }
         var binding = new RADBinding.Radius();
-        binding.initRadius(configfile);
+        binding.initRadius();
+
+        for (var attr in rconfig) {
+            binding.configAdd(attr, rconfig[attr]);
+        }
+        binding.readDictionary();
+
         bindings.push(binding);
         return binding;
     }
