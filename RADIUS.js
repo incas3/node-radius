@@ -163,7 +163,7 @@ var AccountingQueue = function(backingfile, conn) {
         fs.open(backingfile, 'w+', 0600, function(err, fd) {
             if (!err) {
                 fs.write(fd, b, 0, b.length, 0, function() {
-                    connection.log('Wrote queue to ' + backingfile);
+                    connection.debug_log('Wrote queue to ' + backingfile);
                     fs.close(fd);
                     if (exit) {
                         process.exit(0);
