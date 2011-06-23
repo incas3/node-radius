@@ -188,7 +188,6 @@ var AccountingQueue = function(backingfile, conn) {
                         // nextTick allows us to do this all again, but allow this binding
                         // so finish and become free.
                         process.nextTick(self.queueRun);
-                        self.queueRun();
                     }
                 });
             } catch (err) {
