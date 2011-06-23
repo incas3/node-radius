@@ -5,10 +5,12 @@ Node binding for freeradiusclient http://freeradius.org/freeradius-client/
 
 Current Notes
 -------------
-You must first install the freeradiusclient libraries, and configure via radiusclient.conf.
+
+You must first install the freeradiusclient libraries.
 
 Contributing
 ------------
+
 Pull requests are welcome. Find bugs!
 
 Dependencies
@@ -25,19 +27,24 @@ To build, ensure the client libraries are installed, and
 
 Auth Example
 ------------
-        var RADIUS = require("../RADIUS");
-        var r = new RADIUS.Connection({
+
+        var RADIUS = require("RADIUS");
+	/**
+         *  All the configuration variables are optional, defaults shown below
+         */
+        var r = new RADIUS.Client({
             auth_order:      "radius",
             radius_deadtime: "0",
             radius_retries:  "3",
             dictionary:      "/usr/local/etc/radiusclient/dictionary",
-            seqfile:         "/var/run/radius.seq",
+            seqfile:         "/var/run/radiusclient.seq",
             radius_timeout:  "5",
-            authserver:      "server.example.com:1645:foobarbaz",
-            acctserver:      "server.example.com:1646:foobarbaz"
-});
+            authserver:      "localhost:1812:secret",
+            acctserver:      "localhost:1813:secret",
+            poolsize:        10
+        });
         
-        r.auth({"user-name": "user1", 
+        r.Auth({"user-name": "user1", 
                 "password": "seCretPassword",
                 "service-type": "framed-user"}, 
 
@@ -47,20 +54,12 @@ Auth Example
 
 Accounting Example
 --------------------
-        var RADIUS = require("../RADIUS");
-        var r = new RADIUS.Connection({
-            auth_order:      "radius",
-            radius_deadtime: "0",
-            radius_retries:  "3",
-            dictionary:      "/usr/local/etc/radiusclient/dictionary",
-            seqfile:         "/var/run/radius.seq",
-            radius_timeout:  "5",
-            authserver:      "server.example.com:1645:secret",
-            acctserver:      "server.example.com:1646:secret"
-            });
+
+        var RADIUS = require("RADIUS");
+        var r = new RADIUS.Client();
         
-        r.acct({"user-name":          "user1",
-                "session-id":         r.genID(),
+        r.Acct({"user-name":          "user1",
+                "session-id":         "unique-session-id!",
                 "acct-input-octets":  78264,
                 "acct-output-octets": 77363},
                 function(res) {
@@ -70,6 +69,7 @@ Accounting Example
 
 TODO:
 -----
+
 * Vendor-specific attributes
-* AccountingQueue is not complete
 * Test harness for radiusd required for proper testing
+* Extra libs for Session Management and Accounting Queue
