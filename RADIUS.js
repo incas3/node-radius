@@ -185,6 +185,9 @@ var AccountingQueue = function(backingfile, conn) {
                         self.queue.unshift(current);
                     } else {
                         connection.debug_log('Packet sent successfully');
+                        // nextTick allows us to do this all again, but allow this binding
+                        // so finish and become free.
+                        process.nextTick(self.queueRun);
                         self.queueRun();
                     }
                 });
