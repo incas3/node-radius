@@ -129,7 +129,6 @@ public:
     String::Utf8Value val(args[1]);
 
     if (rc_add_config(r->rh, *key, *val, "config", 0) != 0) {
-      fprintf(stderr, "Opt: %s %s\n", *key, *val);
       THROW("Bad config option");
     }
     
@@ -337,6 +336,7 @@ public:
     TryCatch try_catch;
 
     argv[0] = Integer::New(rad_req->result);
+
     rad_req->callback->Call(Context::GetCurrent()->Global(), 1, argv);
 
     rad_req->callback.Dispose();
