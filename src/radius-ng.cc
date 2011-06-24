@@ -231,24 +231,15 @@ public:
     struct RadiusRequest * rad_req = (Radius::RadiusRequest*)req->data;
     Radius * r = rad_req->r;
     Local<Value> argv[1];
-    Local<Array>  js_result_list;
-    Local<Object> js_result;
+    Local<Object>  js_result_list = Object::New();
     VALUE_PAIR *vp = NULL;
     char kbuf[1024], vbuf[1024];
-    int count = 0;
 
     TryCatch try_catch;
 
     argv[0] = Integer::New(rad_req->result);
 
     if (r->received) {
-      vp = r->received;
-      while(vp) {
-        count++;
-        vp = vp->next;
-      }
-
-      js_result_list = Array::New(count);
 
       vp = r->received;
       while(vp) {
@@ -268,10 +259,9 @@ public:
         vp = vp->next;
       }      
       argv[1] = js_result_list;
-      rad_req->callback->Call(Context::GetCurrent()->Global(), 2, argv);
-    } else {
-      rad_req->callback->Call(Context::GetCurrent()->Global(), 1, argv);
     }
+    
+    rad_req->callback->Call(Context::GetCurrent()->Global(), 2, argv);
 
     rad_req->callback.Dispose();
 
