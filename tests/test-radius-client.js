@@ -4,17 +4,19 @@
 var Radius = require("../lib/RADIUS.js");
 
 //enable debugging
-Radius.debug = true;
+//Radius.debug = Radius.dirty;
 
 var client = new Radius.Client();
 
-var callback = function(res, attr){ 
-    console.log("RESPONSE RECEIVED"); 
+var callback = function(res, attr, msg){ 
+    console.log("\nRESPONSE RECEIVED"); 
     console.log(Radius.RESPONSE_CODES[res]);
     console.log(attr); 
 };
 
 console.log("ABOUT TO MAKE REQUEST!");
+client.Auth({"user-name": "testuser", "password": "testpass", "service-type": "framed-user"}, callback);
+client.Auth({"user-name": "testuser", "password": "testpass", "service-type": "framed-user"}, callback);
 client.Auth({"user-name": "testuser", "password": "testpass", "service-type": "framed-user"}, callback);
 
 // Closing the connecting ensure all requests finish!
