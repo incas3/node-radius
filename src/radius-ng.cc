@@ -249,7 +249,6 @@ public:
       vp = r->received;
       while(vp) {
         if(rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024) == 0){
-            printf("%s: %s\n", kbuf, vbuf);
             js_result_list->Set(String::New(kbuf), String::New(vbuf));
         }
         vp = vp->next;
