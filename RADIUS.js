@@ -173,6 +173,7 @@ var AccountingQueue = function(backingfile, conn) {
     }
 
     self.queueRun = function() {
+        connection.debug_log("Serving queue - length " + self.queue.length);
         if (current = self.queue.shift()) {
             current._tries++;
             try {
