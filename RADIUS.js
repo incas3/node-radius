@@ -31,7 +31,6 @@ var RADConnection = function(cfg) {
         binding.initRadius();
 
         for (var attr in rconfig) {
-            self.debug_log('Adding ' + attr + ' ' + rconfig[attr]);
             binding.configAdd(attr, rconfig[attr]);
         }
         binding.readDictionary();
@@ -181,23 +180,26 @@ var AccountingQueue = function(backingfile, conn) {
                 connection.debug_log('Sending packet (try ' + current._tries + ')');
                 connection.acct(current, function(err) {
                     if (err) {
-                        connection.log('Error sending packet '+current._tries);
-                        self.queue.unshift(current);
+                        connection.log('Error sending packet try ' + current._tries + ' storing for retry');
+                        self.queue.push(current);
                     } else {
                         connection.debug_log('Packet sent successfully');
                         // nextTick allows us to do this all again, but allow this binding
                         // so finish and become free.
-                        process.nextTick(self.queueRun);
                     }
+                    process.nextTick(self.queueRun);
                 });
             } catch (err) {
                 // this catch is for connection.Acct. If an error is thrown,
                 // do nothing, as this is caused by a bad request, not a network
                 // problem. Especially don't unshift back to the queue. 
-                connection.log('Error ' + err + ' sending packet');
+                connection.log(err + ' invalid format');
+                setTimeout(self.queueRUn, runInterval);
             }
+        } else {
+            // nothing left in queue.
+            setTimeout(self.queueRun, runInterval);
         }
-        setTimeout(self.queueRun, runInterval);
     }
 
     self.run = function() {
