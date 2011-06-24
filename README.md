@@ -23,13 +23,13 @@ Installation
 
 To build, ensure the client libraries are installed, and
 
-   npm install https://github.com/jeremycx/node-radius/tarball/master -g
+   npm install https://github.com/thechriswalker/node-radius/tarball/master -g
 
 Auth Example
 ------------
 
         var RADIUS = require("RADIUS");
-	/**
+        /**
          *  All the configuration variables are optional, defaults shown below
          */
         var r = new RADIUS.Client({
