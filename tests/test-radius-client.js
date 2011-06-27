@@ -1,24 +1,24 @@
-/**
- *  Testing the Radius Client Connection Pool
- */
+
 var Radius = require("../lib/RADIUS.js");
 
-//enable debugging
-//Radius.debug = Radius.dirty;
+var radius_client = new Radius.Client();
 
-var client = new Radius.Client();
+var user_vsa = {"user-name": "testuser2", "password": "testpass", "service-type": "framed-user"};
+var user_no_vsa = {"user-name": "testuser", "password": "testpass", "service-type": "framed-user"};
 
-var callback = function(res, attr, msg){ 
-    console.log("\nRESPONSE RECEIVED"); 
-    console.log(Radius.RESPONSE_CODES[res]);
-    console.log(attr); 
-};
+var expected_vsa = [0, [["Service-Type", "Framed-User"], ["Reply-Message", "Nomadix VSA Attribute"], ["Nomadix-Bw-Down", "1024"]] ];
+var expected_no_vsa = [0, [["Service-Type", "Framed-User"], ["Reply-Message", "No VSA Attributes"]] ];
 
-console.log("ABOUT TO MAKE REQUEST!");
-client.Auth({"user-name": "testuser", "password": "testpass", "service-type": "framed-user"}, callback);
-client.Auth({"user-name": "testuser", "password": "testpass", "service-type": "framed-user"}, callback);
-client.Auth({"user-name": "testuser", "password": "testpass", "service-type": "framed-user"}, callback);
+var tests = [
+    { name: "Request expects no VSA in Response",
+	  attrs: user_no_vsa,
+	  radius: radius_client,
+	  expected: expected_no_vsa },
+	{ name: "Radius with VSA Dictionary, Request expects VSA in Response",
+	  attrs: user_vsa,
+	  radius: radius_client,
+	  expected: expected_vsa }
+];
 
-// Closing the connecting ensure all requests finish!
-console.log("CLOSING CLIENT CONNECTION");
-client.Close();
+
+require('./tester')(tests);
