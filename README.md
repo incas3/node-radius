@@ -11,7 +11,30 @@ also had the error:
 
 `libfreeradius-client.so.2: cannot open shared object file: No such file or directory`
 
-This can be fixed by running the command `ldconfig /usr/local/lib` as root.
+This can be fixed by running the command `ldconfig /usr/local/lib` as root (YMMV).
+
+I also used the latest freeradiusclient libraries from CVS, as they contain some 
+patches not found in 1.1.6 archive available for download. Also I applied a patch
+from http://freeradius.1045715.n5.nabble.com/Patch-avpair-c-empty-reply-VALUE-PAIR-0x0-for-replies-with-unknown-vendor-attributes-td2794477.html#a28888431
+which fixed an issue I encountered with "unknown" attributes causing the entire
+attribute list to be empty.
+
+It is also worth noting that the dictionary files provided with "freeradius-server" 
+are **NOT** compatible with the freeradius-client. The man page for dictionary files at
+http://freeradius.org/radiusd/man/dictionary.html describes the format:
+
+    ATTRIBUTE name number type [vendor|options]
+
+    Define a RADIUS attribute name to number mapping. The name field can be any non-space text, but is usually taken from RFC2865, and other related documents. The number field is also taken from the relevant documents, for that name. The type field can be one of string, octets, ipaddr, integer, date, ifid, ipv6addr, ipv6prefix, or ether abinary. See the RFC's, or the main dictionary file for a description of the various types.
+    The last (optional) field of an attribute definition can have either a vendor name, or options for that attribute. When a vendor name is given, the attribute is defined to be a vendor specific attribute.
+
+Note that the page does not include any reference to the "BEGIN-VENDOR vendor" and "END-VENDOR vendor" lines used extensively in freeradius-server.
+However:
+
+  * **freeradius-client** REQUIRES the "vendor" field and fails loading if the "options" are used. Also it fails to recognise (but doesn't fail on) "BEGIN-VENDOR vendor" and "END-VENDOR vendor" lines.
+  * **freeradius-server** will FAIL to load if it encounters the "vendor" field and REQUIRES the "VENDOR-START vendor" and "VENDOR-END vendor" to be in place.
+
+Therefore, to use vendor attributes with the client, you must ensure that you add the vendor name after all attributes listed in the dictionary before you `$INCLUDE` it.
 
 Contributing
 ------------
@@ -76,11 +99,6 @@ Usage Example
 TODO:
 -----
 
-* Vendor-specific attributes: Currently even loading VENDOR attributes into the
-  dictionary file will cause unexpected behaviour, as will recieving a response
-  including VSAs whether the dictionary has them or not. I am currently confused
-  by this... (help anyone? it must be with the C++ code with which I am a little
-  green still)
 * Extra libs for Session Management Javascript
 * More Testing against given freeradius-server configuration.
 
