@@ -236,23 +236,39 @@ public:
     r->Unref(); // don't keep this any longer than this scope
     
     Local<Value> argv[1];
-    Local<Object>  js_result_list = Object::New();
+    Local<Array>  js_result_list;
+    Local<Object> av_pair_info;
     VALUE_PAIR *vp = NULL;
     char kbuf[1024], vbuf[1024];
+    int count = 0;
 
     TryCatch try_catch;
 
     argv[0] = Integer::New(rad_req->result);
     
     if (r->received) {
+      //count AV pairs and start Array.
+      vp = r->received;
+      while(vp){
+        count++;
+        vp = vp->next;
+      }
+      js_result_list = Array::New(++count);
+      count = 0;
 
       vp = r->received;
       while(vp) {
         if(rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024) == 0){
-            js_result_list->Set(String::New(kbuf), String::New(vbuf));
+	    av_pair_info = Array::New(2);
+	    av_pair_info->Set(0, String::New(kbuf));
+	    av_pair_info->Set(1, String::New(vbuf));
+	    js_result_list->Set(count++, av_pair_info);
         }
         vp = vp->next;
       } 
+    }else{
+	//attributes are an empty array.
+	js_result_list = Array::New();
     }
 
     argv[1] = js_result_list;
