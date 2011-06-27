@@ -23,10 +23,10 @@ It is also worth noting that the dictionary files provided with "freeradius-serv
 are **NOT** compatible with the freeradius-client. The man page for dictionary files at
 http://freeradius.org/radiusd/man/dictionary.html describes the format:
 
-    ATTRIBUTE name number type [vendor|options]
-
-    Define a RADIUS attribute name to number mapping. The name field can be any non-space text, but is usually taken from RFC2865, and other related documents. The number field is also taken from the relevant documents, for that name. The type field can be one of string, octets, ipaddr, integer, date, ifid, ipv6addr, ipv6prefix, or ether abinary. See the RFC's, or the main dictionary file for a description of the various types.
-    The last (optional) field of an attribute definition can have either a vendor name, or options for that attribute. When a vendor name is given, the attribute is defined to be a vendor specific attribute.
+> ATTRIBUTE name number type [vendor|options]
+>
+> Define a RADIUS attribute name to number mapping. The name field can be any non-space text, but is usually taken from RFC2865, and other related documents. The number field is also taken from the relevant documents, for that name. The type field can be one of string, octets, ipaddr, integer, date, ifid, ipv6addr, ipv6prefix, or ether abinary. See the RFC's, or the main dictionary file for a description of the various types.
+> The last (optional) field of an attribute definition can have either a vendor name, or options for that attribute. When a vendor name is given, the attribute is defined to be a vendor specific attribute.
 
 Note that the page does not include any reference to the "BEGIN-VENDOR vendor" and "END-VENDOR vendor" lines used extensively in freeradius-server.
 However:
