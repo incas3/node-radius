@@ -14,7 +14,7 @@ var tests = [
 	  attrs: user_no_vsa,
 	  radius: radius_client,
 	  expected: expected_no_vsa },
-	{ name: "Radius with VSA Dictionary, Request expects VSA in Response",
+	{ name: "Request expects VSA in Response",
 	  attrs: user_vsa,
 	  radius: radius_client,
 	  expected: expected_vsa }
