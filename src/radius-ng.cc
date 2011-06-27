@@ -129,7 +129,6 @@ public:
     String::Utf8Value val(args[1]);
 
     if (rc_add_config(r->rh, *key, *val, "config", 0) != 0) {
-      fprintf(stderr, "Opt: %s %s\n", *key, *val);
       THROW("Bad config option");
     }
     
