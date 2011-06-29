@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git://github.com/jeremycx/node-radius.git"
   },
-  "main": "./lib/RADIUS.js",
+  "main": "./lib",
   "engines": {
     "node": ">= 0.4.0"
   },
