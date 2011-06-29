@@ -1,2 +1,4 @@
 /.lock-wscript
 /build
+/tests/test-accounts.js
+

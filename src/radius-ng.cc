@@ -208,11 +208,13 @@ public:
     REQ_FUN_ARG(0, cb);
     
     rad_req = (Radius::RadiusRequest*)malloc(sizeof(struct RadiusRequest));
+    r->Ref(); // don't collect!
     rad_req->r = r;
     rad_req->callback = Persistent<Function>::New(cb);
 
     r->busy = 1;
     eio_custom(EIO_Auth, EIO_PRI_DEFAULT, EIO_AfterAuth, rad_req);
+    ev_ref(EV_DEFAULT_UC); //don't quit while we're working!
     
     return scope.Close(Integer::New(0));
   }
@@ -229,9 +231,12 @@ public:
   static int EIO_AfterAuth(eio_req * req) {
     struct RadiusRequest * rad_req = (Radius::RadiusRequest*)req->data;
     Radius * r = rad_req->r;
+    ev_unref(EV_DEFAULT_UC); //now we're done we can unref
+    r->Unref(); // don't keep this any longer than this scope
+    
     Local<Value> argv[1];
     Local<Array>  js_result_list;
-    Local<Object> js_result;
+    Local<Object> av_pair_info;
     VALUE_PAIR *vp = NULL;
     char kbuf[1024], vbuf[1024];
     int count = 0;
@@ -239,52 +244,39 @@ public:
     TryCatch try_catch;
 
     argv[0] = Integer::New(rad_req->result);
-
+    
     if (r->received) {
+      //count AV pairs and start Array.
       vp = r->received;
-      while(vp) {
+      while(vp){
         count++;
         vp = vp->next;
       }
-
-      js_result_list = Array::New(count);
+      js_result_list = Array::New(++count);
+      count = 0;
 
       vp = r->received;
       while(vp) {
-        switch(vp->type) {
-        case PW_TYPE_STRING:
-        case PW_TYPE_IPADDR:
-          rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024); 
-          js_result_list->Set(String::New(kbuf), String::New(vbuf));
-          break;
-        case PW_TYPE_INTEGER:
-          rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024); 
-          js_result_list->Set(String::New(kbuf), Integer::New(vp->lvalue));
-          break;
-        default:
-          break;
+        if(rc_avpair_tostr(r->rh, vp, kbuf, 1024, vbuf, 1024) == 0){
+	    av_pair_info = Array::New(2);
+	    av_pair_info->Set(0, String::New(kbuf));
+	    av_pair_info->Set(1, String::New(vbuf));
+	    js_result_list->Set(count++, av_pair_info);
         }
         vp = vp->next;
-      }      
-      argv[1] = js_result_list;
-      rad_req->callback->Call(Context::GetCurrent()->Global(), 2, argv);
-    } else {
-      rad_req->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+      } 
+    }else{
+	//attributes are an empty array.
+	js_result_list = Array::New();
     }
+
+    argv[1] = js_result_list;
+    rad_req->callback->Call(Context::GetCurrent()->Global(), 2, argv);
 
     rad_req->callback.Dispose();
 
     if (try_catch.HasCaught()) {
       FatalException(try_catch);
-    }
-
-    if (r->send != NULL) {
-      rc_avpair_free(r->send);
-      r->send = NULL;
-    }
-    if (r->received != NULL) {
-      rc_avpair_free(r->received);
-      r->received = NULL;
     }
 
     free(rad_req);
@@ -310,11 +302,13 @@ public:
     REQ_FUN_ARG(0, cb);
     
     rad_req = (Radius::RadiusRequest*)malloc(sizeof(struct RadiusRequest));
+    r->Ref(); // don't collect!
     rad_req->r = r;
     rad_req->callback = Persistent<Function>::New(cb);
 
     r->busy = 1;
     eio_custom(EIO_Acct, EIO_PRI_DEFAULT, EIO_AfterAcct, rad_req);
+    ev_ref(EV_DEFAULT_UC); //don't quit while we're working!
     
     return scope.Close(Integer::New(0));
   }
@@ -331,6 +325,9 @@ public:
   static int EIO_AfterAcct(eio_req * req) {
     struct RadiusRequest * rad_req = (Radius::RadiusRequest*)req->data;
     Radius * r = rad_req->r;
+    ev_unref(EV_DEFAULT_UC); //now we're done we can unref
+    r->Unref(); // don't keep this any longer than this scope
+    
     Local<Value> argv[1];
 
     TryCatch try_catch;
