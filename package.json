@@ -2,13 +2,13 @@
   "author": "Jeremy Childs <jeremyc@ssimicro.com>",
   "name": "RADIUS",
   "description": "FreeRADIUS Binding for node.js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/jeremycx/node-radius",
   "repository": {
     "type": "git",
     "url": "git://github.com/jeremycx/node-radius.git"
   },
-  "main": "./RADIUS.js",
+  "main": "./lib/RADIUS.js",
   "engines": {
     "node": ">= 0.4.0"
   },
