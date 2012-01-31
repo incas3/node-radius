@@ -45,7 +45,7 @@ Pull requests are welcome. Find bugs!
 Dependencies
 ------------
 
-Tested with Node >= v0.4.0
+Updated for node version 0.6.9
 
 Installation
 ------------
