@@ -227,7 +227,7 @@ public:
  
   }
 
-  static void EIO_AfterAuth(eio_req * req) {
+  static int EIO_AfterAuth(eio_req * req) {
     struct RadiusRequest * rad_req = (Radius::RadiusRequest*)req->data;
     Radius * r = rad_req->r;
     ev_unref(EV_DEFAULT_UC); //now we're done we can unref
@@ -282,6 +282,8 @@ public:
 
     r->busy = 0;
 
+    return 0;
+
   }
 
   /*
@@ -319,7 +321,7 @@ public:
  
   }
 
-  static void EIO_AfterAcct(eio_req * req) {
+  static int EIO_AfterAcct(eio_req * req) {
     struct RadiusRequest * rad_req = (Radius::RadiusRequest*)req->data;
     Radius * r = rad_req->r;
     ev_unref(EV_DEFAULT_UC); //now we're done we can unref
@@ -346,8 +348,9 @@ public:
     free(rad_req);
 
     r->busy = 0;
-    
+    return 0;    
   }
+
 };
 
 Persistent<FunctionTemplate> Radius::s_ct;
